@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema di Calcolo Giorni di Ferie</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #7f8c8d;
+            margin-top: 25px;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+            overflow-x: auto;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+        .rule-box {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #28a745;
+            margin: 15px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .scenario {
+            background-color: #f8f9fa;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sistema di Calcolo Giorni di Ferie</h1>
+
+    <p>Il sistema calcola i giorni di ferie spettanti a un dipendente in base all'età e agli anni di servizio, applicando regole che possono essere additive o mutuamente esclusive.</p>
+
+    <p>Sono implementati:</p>
+    <ul>
+        <li><strong>vacation_days/3</strong>: Predicato principale per il calcolo dei giorni di ferie</li>
+        <li><strong>Regole configurabili</strong>: Sistema flessibile di regole additive e mutuamente esclusive</li>
+    </ul>
+
+    <p>La logica è: <em>giorni_totali = giorni_base + max(regole_mutex) + somma(regole_additive)</em></p>
+
+    <h2>Configurazione delle Regole</h2>
+
+    <div class="rule-box">
+        <h3>Giorni Base</h3>
+        <p>Ogni dipendente riceve <strong>22 giorni</strong> di ferie di base.</p>
+    </div>
+
+    <div class="rule-box">
+        <h3>Regole Mutuamente Esclusive (r1, r3)</h3>
+        <p><strong>Regola r1</strong> (5 giorni extra):</p>
+        <ul>
+            <li>Dipendenti con età < 18 anni</li>
+            <li>Dipendenti con età ≥ 60 anni</li>
+            <li>Dipendenti con ≥ 30 anni di servizio</li>
+        </ul>
+        
+        <p><strong>Regola r3</strong> (2 giorni extra):</p>
+        <ul>
+            <li>Dipendenti con 15-29 anni di servizio</li>
+            <li>Dipendenti con età ≥ 45 anni</li>
+        </ul>
+        
+        <p><em>Viene applicata solo la regola che dà più giorni tra r1 e r3.</em></p>
+    </div>
+
+    <div class="rule-box">
+        <h3>Regole Additive (r2)</h3>
+        <p><strong>Regola r2</strong> (3 giorni extra):</p>
+        <ul>
+            <li>Dipendenti con ≥ 30 anni di servizio E età ≥ 60 anni</li>
+        </ul>
+        
+        <p><em>Si somma sempre quando applicabile.</em></p>
+    </div>
+
+    <h2>Esempi di Utilizzo</h2>
+
+    <h3>Calcolo Diretto</h3>
+
+    <div class="scenario">
+        <p><strong>Dipendente 25 anni, 5 anni servizio:</strong></p>
+        <pre><code>?- vacation_days(25, 5, Giorni).
+Giorni = 22</code></pre>
+        <p>Solo giorni base (nessuna regola applicabile)</p>
+    </div>
+
+    <div class="scenario">
+        <p><strong>Dipendente 45 anni, 20 anni servizio:</strong></p>
+        <pre><code>?- vacation_days(45, 20, Giorni).
+Giorni = 24</code></pre>
+        <p>22 base + 2 (regola r3 per età ≥ 45)</p>
+    </div>
+
+    <div class="scenario">
+        <p><strong>Dipendente 62 anni, 35 anni servizio:</strong></p>
+        <pre><code>?- vacation_days(62, 35, Giorni).
+Giorni = 30.</code></pre>
+        <p>22 base + 5 (regola r1 per età ≥ 60 e servizio ≥ 30) + 3 (regola r2 additiva)</p>
+    </div>
+
+    <div class="scenario">
+        <p><strong>Dipendente 17 anni, 0 anni servizio:</strong></p>
+        <pre><code>?- vacation_days(17, 0, Giorni).
+Giorni = 27.</code></pre>
+        <p>22 base + 5 (regola r1 per età < 18)</p>
+    </div>
+
+
+    <h2>Possibili Totali di Giorni</h2>
+
+    <div class="highlight">
+        <p><strong>Totali possibili:</strong> 22, 24, 25, 27, 30 giorni</p>
+        
+        <table>
+            <tr>
+                <th>Giorni Totali</th>
+                <th>Composizione</th>
+                <th>Esempio Condizioni</th>
+            </tr>
+            <tr>
+                <td>22</td>
+                <td>Solo base</td>
+                <td>Età: 25-44, Servizio: 0-14</td>
+            </tr>
+            <tr>
+                <td>24</td>
+                <td>Base + r3 (2)</td>
+                <td>Età: 45+, Servizio: 0-14</td>
+            </tr>
+            <tr>
+                <td>25</td>
+                <td>Base + r3 (2) + r2 (3) - r1 (5)</td>
+                <td>Età: 45-59, Servizio: 15-29</td>
+            </tr>
+            <tr>
+                <td>27</td>
+                <td>Base + r1 (5)</td>
+                <td>Età: <18 o ≥60, Servizio: qualsiasi</td>
+            </tr>
+            <tr>
+                <td>30</td>
+                <td>Base + r1 (5) + r2 (3)</td>
+                <td>Età: ≥60, Servizio: ≥30</td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>

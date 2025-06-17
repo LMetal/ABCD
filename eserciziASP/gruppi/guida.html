@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema di Assegnazione Auto per Vacanze</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #7f8c8d;
+            margin-top: 25px;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+            overflow-x: auto;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+        .error {
+            background-color: #f8d7da;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #dc3545;
+            margin: 15px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #28a745;
+            margin: 15px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sistema di Assegnazione Auto per Vacanze ASP</h1>
+
+    <p>Il sistema risolve il problema di assegnare partecipanti ad auto per un viaggio, ottimizzando le preferenze e rispettando tutti i vincoli di sicurezza e logistici.</p>
+
+    <h2>Struttura del Problema</h2>
+
+    <p>Il sistema deve:</p>
+    <ul>
+        <li>Calcolare il numero di auto necessarie</li>
+        <li>Assegnare ogni persona a esattamente un'auto</li>
+        <li>Garantire che ogni auto abbia un guidatore</li>
+        <li>Rispettare le incompatibilità tra persone</li>
+        <li>Ottimizzare le preferenze di viaggio insieme</li>
+    </ul>
+
+    <h2>Regole Principali</h2>
+
+    <h3>1. Calcolo Auto Necessarie</h3>
+    <pre><code>autotot(N) :- N=n/4, n\4=0.
+autotot(N) :- N=n/4+1, n\4>0.</code></pre>
+    <p><strong>Significato:</strong> Calcola il numero di auto (massimo 4 persone per auto)</p>
+
+    <h3>2. Selezione Auto</h3>
+    <pre><code>{auto_scelta(A) : ha_auto(A)} = N :- autotot(N).</code></pre>
+    <p><strong>Significato:</strong> Sceglie esattamente N auto tra quelle disponibili</p>
+
+    <h3>3. Assegnazione Persone</h3>
+    <pre><code>{in_auto(P, A) : auto_scelta(A)} = 1 :- p(P).</code></pre>
+    <p><strong>Significato:</strong> Ogni persona va in esattamente un'auto scelta</p>
+
+    <h3>4. Vincoli di Capacità</h3>
+    <pre><code>:- auto_scelta(A), #count{P : in_auto(P, A)} < 2.
+:- auto_scelta(A), #count{P : in_auto(P, A)} > 4.</code></pre>
+    <p><strong>Significato:</strong> Ogni auto deve avere tra 2 e 4 persone</p>
+
+    <h3>5. Vincolo Proprietario</h3>
+    <pre><code>:- auto_scelta(A), not in_auto(A, A).</code></pre>
+    <p><strong>Significato:</strong> Il proprietario deve viaggiare nella sua auto</p>
+
+    <h3>6. Vincolo Guidatore Aggiuntivo</h3>
+    <pre><code>:- auto_scelta(A), not #count{P : in_auto(P, A), guida(P), P != A} >= 1.</code></pre>
+    <p><strong>Significato:</strong> Ogni auto deve avere almeno un guidatore oltre al proprietario</p>
+
+    <h3>7. Incompatibilità</h3>
+    <pre><code>:- in_auto(P1, A), in_auto(P2, A), nv(P1, P2).</code></pre>
+    <p><strong>Significato:</strong> Due persone incompatibili non possono stare nella stessa auto</p>
+
+    <h3>8. Ottimizzazione Preferenze</h3>
+    <pre><code>violazione_preferenza(P1, P2) :- v(P1, P2), not same_auto(P1, P2).
+#minimize{1@1, P1, P2 : violazione_preferenza(P1, P2)}.</code></pre>
+    <p><strong>Significato:</strong> Minimizza il numero di preferenze non soddisfatte</p>
+
+    <h2>Esempi di Test</h2>
+
+    <h3>Test 1: Caso Funzionante (4 persone)</h3>
+    <div class="success">
+        <strong>Dati:</strong>
+        <pre><code>#const n=4.
+ha_auto(1). ha_auto(2).
+guida(1). guida(2). guida(3). guida(4).
+v(1,2). v(2,3).</code></pre>
+        <strong>Output:</strong>
+        <pre><code>in_auto(1,2) in_auto(2,2) in_auto(3,2) in_auto(4,2)
+auto_scelta(2)</code></pre>
+        <strong>Risultato:</strong> Tutti insieme nell'auto 2, nessuna violazione
+    </div>
+
+    <h3>Test 2: Caso con Violazioni (6 persone)</h3>
+    <div class="highlight">
+        <strong>Dati:</strong>
+        <pre><code>#const n=6.
+ha_auto(1). ha_auto(3).
+guida(1). guida(3). guida(4).
+nv(3,1). v(1,2). v(2,3).</code></pre>
+        <strong>Problema:</strong> Servirebbero 2 auto, ma il vincolo del guidatore aggiuntivo crea conflitti
+    </div>
+
+    <h3>Test 3: Caso Unsatisfiable</h3>
+    <div class="error">
+        <strong>Cause comuni di unsatisfiability:</strong>
+        <ul>
+            <li>Troppo poche auto disponibili</li>
+            <li>Guidatori insufficienti per il vincolo aggiuntivo</li>
+            <li>Incompatibilità che creano cicli impossibili</li>
+            <li>Combinazione di proprietari e incompatibilità</li>
+        </ul>
+    </div>
+
+    <h2>Configurazioni di Test</h2>
+
+    <table>
+        <tr>
+            <th>Persone</th>
+            <th>Auto Necessarie</th>
+            <th>Auto Disponibili</th>
+            <th>Guidatori</th>
+            <th>Risultato</th>
+        </tr>
+        <tr>
+            <td>4</td>
+            <td>1</td>
+            <td>2</td>
+            <td>4</td>
+            <td>✅ Soddisfacibile</td>
+        </tr>
+        <tr>
+            <td>6</td>
+            <td>2</td>
+            <td>2</td>
+            <td>3</td>
+            <td>❌ Problematico</td>
+        </tr>
+        <tr>
+            <td>8</td>
+            <td>2</td>
+            <td>3</td>
+            <td>5</td>
+            <td>✅ Soddisfacibile</td>
+        </tr>
+        <tr>
+            <td>10</td>
+            <td>3</td>
+            <td>4</td>
+            <td>6</td>
+            <td>✅ Soddisfacibile</td>
+        </tr>
+    </table>
+
+
+    <h2>Esecuzione</h2>
+    <p>Per testare il sistema:</p>
+    <pre><code>clingo datigruppi.lp gruppi.lp</code></pre>
+
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema di Validazione del Reddito per Prestiti</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #7f8c8d;
+            margin-top: 25px;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+            overflow-x: auto;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sistema di Validazione del Reddito per Prestiti</h1>
+
+    <p>Il sistema valuta se concedere un prestito verificando che il reddito del cliente sia sufficiente a coprire tutti i debiti durante la durata del prestito.</p>
+
+    <p>Sono implementati due predicati:</p>
+    <ul>
+        <li><strong>incomev</strong>: Validazione semplificata senza interessi</li>
+        <li><strong>incomeval</strong>: Validazione completa con calcolo degli interessi</li>
+    </ul>
+
+    <p>La logica è semplice: il prestito viene approvato se il reddito totale del cliente supera il debito totale accumulato (debiti esistenti + nuovo prestito).</p>
+
+    <h2>Esempi di Utilizzo</h2>
+
+    <h3>Predicato incomev (senza interessi)</h3>
+
+    <p><strong>Verifica approvazione:</strong></p>
+    <pre><code>?- incomev(30000, 24, 2000, 500).
+% Yes</code></pre>
+    <pre><code>?- incomev(30000, 12, 2000, 500).
+% No</code></pre>
+
+    <p><strong>Trova importo massimo prestabile:</strong></p>
+    <pre><code>?- incomev(Importo, 24, 2000, 500).
+% Linear constraints:
+{
+  Importo < 36000.0
+}</code></pre>
+
+
+    <p><strong>Trova durata minima:</strong></p>
+    <pre><code>?- incomev(40000, Durata, 2000, 500).
+% Linear constraints:
+{
+  Durata > 26.666666666666668
+}</code></pre>
+
+    <h3>Predicato incomeval (con interessi)</h3>
+
+    <p><strong>Verifica approvazione (tasso 0.5% mensile):</strong></p>
+    <pre><code>?- incomeval(30000, 0.005, 24, 2000, 500).
+% Yes</code></pre>
+
+    <p><strong>Trova capitale massimo prestabile:</strong></p>
+    <pre><code>?- incomeval(Capitale, 0.005, 24, 2000, 500).
+% Linear constraints:
+{
+  Capitale < 33844.299332648574,
+  Capitale > 0.0
+}</code></pre>
+
+    <p><strong>Trova durata minima:</strong></p>
+    <pre><code>?- incomeval(40000, 0.005, Durata, 2000, 500).
+% Durata >= 28 mesi</code></pre>
+
+    <div class="highlight">
+        <p><strong>Confronto senza/con interessi:</strong></p>
+        <ul>
+            <li>Senza interessi: prestito massimo 36000€ per 24 mesi</li>
+            <li>Con interessi 0.5%: prestito massimo ~34500€ per 24 mesi</li>
+        </ul>
+    </div>
+
+</body>
+</html>
