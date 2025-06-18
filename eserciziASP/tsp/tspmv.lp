@@ -1,53 +1,35 @@
-% --- Input atteso da file dati ---
-% start(S).             % nodo di partenza (es. start(a).)
-% togo(X).              % nodi da visitare (X ≠ start)
-% vehicle(V).           % veicoli disponibili
-% cost(V,C).            % costo per unità di distanza per veicolo V
-% dist(X,Y,D).          % distanza fra nodi (eventualmente solo metà matrice)
-% nec(X,V).             % nodo X deve essere visitato da veicolo V
-
-% --- Rendi la distanza simmetrica ---
+%distanza simmetrica
 dist(X,Y,D) :- dist(Y,X,D).
 
-% --- Ogni nodo deve essere visitato da almeno un veicolo ---
+%ogni nodo visitato da almeno un veicolo
 1 { visit(X,V) : vehicle(V) } :- togo(X).
 
-% --- Se è necessario un veicolo specifico per un nodo, forzalo ---
+%visita veicolo richiesta in determinato nodo
 visit(X,V) :- nec(X,V).
 
-% --- Un veicolo è usato se visita almeno un nodo ---
+%veicolo usato = ha visitato almeno un nodo
 used(V) :- visit(X,V).
 
-% --- Arco in uscita dal nodo di partenza per ogni veicolo usato ---
-1 { go(S,Y,V) : togo(Y), visit(Y,V), S != Y, start(S) } 1 :- used(V).
+%primo arco in uscita da start
+1 { go(S,Y,V) : dist(S,Y,_), visit(Y,V), start(S), S != Y } 1:- used(V).
 
-% --- Arco in ingresso al nodo di partenza per ogni veicolo usato ---
-1 { go(X,S,V) : togo(X), visit(X,V), X != S, start(S) } 1 :- used(V).
+%ultimo arco entrante in start (torna allo start)
+1 { go(X,S,V) : dist(X,S,_), visit(X,V), start(S), X != S } 1:- used(V).
 
-% --- Ogni nodo visitato da un veicolo ha un solo arco in uscita ---
-1 { go(X,Y,V) : togo(Y), visit(Y,V), X != Y } 1 :- visit(X,V), togo(X).
+%un nodo ha un solo arco in uscita per ogni veicolo (grafo denso, disuguaglianza triangolare)
+1 { go(X,Y,V) : dist(X,Y,_), visit(Y,V), X != Y } 1:- visit(X,V).
 
-% --- Ogni nodo visitato da un veicolo ha un solo arco in ingresso ---
-1 { go(X,Y,V) : togo(X), visit(X,V), X != Y } 1 :- visit(Y,V), togo(Y).
+%un nodo ha un solo arco in entrata per ogni veicolo (grafo denso, disuguaglianza triangolare)
+1 { go(X,Y,V) : dist(X,Y,_), visit(X,V), X != Y } 1:- visit(Y,V).
 
-% --- Connettività: tutti i nodi visitati devono essere raggiungibili da start ---
+%nodo raggiungibile da start
 reach(Y,V) :- go(S,Y,V), start(S).
 reach(Y,V) :- go(X,Y,V), reach(X,V).
+:- visit(X,V), not reach(X,V).
 
-:- visit(X,V), togo(X), not reach(X,V).
 
-% --- Coerenza: si può andare da/verso un nodo solo se lo si visita ---
-:- go(X,Y,V), togo(X), not visit(X,V).
-:- go(X,Y,V), togo(Y), not visit(Y,V).
-
-% --- Non partire o tornare allo start con veicolo non usato ---
-:- go(S,Y,V), not used(V), start(S).
-:- go(X,S,V), not used(V), start(S).
-
-% --- Minimizzazione del costo totale ---
+%minimizza costo
 #minimize { D*C,X,Y,V : go(X,Y,V), dist(X,Y,D), cost(V,C) }.
 
-% --- Output utile ---
-#show visit/2.
+%output
 #show go/3.
-#show used/1.

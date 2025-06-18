@@ -1,5 +1,3 @@
-% check.lp - Verifica della correttezza dei dati TSP
-
 %distanze simmetriche
 dist(X,Y,N) :- dist(Y,X,N).
 

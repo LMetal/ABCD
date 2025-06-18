@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TSP Multi-Veicolo con Answer Set Programming</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #7f8c8d;
+            margin-top: 25px;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+            overflow-x: auto;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+        .error {
+            background-color: #f8d7da;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #dc3545;
+            margin: 15px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #28a745;
+            margin: 15px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>TSP Multi-Veicolo con Answer Set Programming</h1>
+
+    <p>Il sistema risolve una versione estesa del Problema del Commesso Viaggiatore (TSP) che utilizza più veicoli con costi diversi per visitare tutti i nodi richiesti, minimizzando il costo totale del viaggio.</p>
+
+    <h2>Struttura del Problema</h2>
+
+    <p>Il sistema deve:</p>
+    <ul>
+        <li>Visitare tutti i nodi richiesti utilizzando uno o più veicoli</li>
+        <li>Ogni veicolo parte e torna al nodo di partenza (start)</li>
+        <li>Rispettare i requisiti di veicoli specifici per alcuni nodi</li>
+        <li>Minimizzare il costo totale considerando distanze e costi per veicolo</li>
+        <li>Garantire percorsi validi e connessi per ogni veicolo</li>
+    </ul>
+
+    <h2>Componenti del Sistema</h2>
+
+    <h3>File check.lp - Validazione Dati</h3>
+    <p>Verifica che i dati di input rispettino i requisiti necessari:</p>
+
+    <h4>1. Verifica Distanze Complete</h4>
+    <pre><code>missing_distance(X,Y) :- togo(X), togo(Y), X != Y, not dist(X,Y,_).</code></pre>
+    <p><strong>Significato:</strong> Identifica coppie di nodi senza distanza definita</p>
+
+    <h4>2. Verifica Disuguaglianza Triangolare</h4>
+    <pre><code>triangle_violation(X,Y,Z) :- 
+    togo(X), togo(Y), togo(Z),
+    X != Y, Y != Z, X != Z,
+    dist(X,Y,DXY), dist(X,Z,DXZ), dist(Z,Y,DZY),
+    DXY > DXZ + DZY.</code></pre>
+    <p><strong>Significato:</strong> Rileva violazioni della disuguaglianza triangolare d(X,Y) ≤ d(X,Z) + d(Z,Y)</p>
+
+    <h3>File tspmv.lp - Soluzione Multi-Veicolo</h3>
+
+    <h4>1. Simmetria delle Distanze</h4>
+    <pre><code>dist(X,Y,D) :- dist(Y,X,D).</code></pre>
+    <p><strong>Significato:</strong> Le distanze sono simmetriche</p>
+
+    <h4>2. Copertura dei Nodi</h4>
+    <pre><code>1 { visit(X,V) : vehicle(V) } :- togo(X).</code></pre>
+    <p><strong>Significato:</strong> Ogni nodo deve essere visitato da almeno un veicolo</p>
+
+    <h4>3. Requisiti Specifici</h4>
+    <pre><code>visit(X,V) :- nec(X,V).</code></pre>
+    <p><strong>Significato:</strong> Se un nodo richiede un veicolo specifico, deve essere visitato da quel veicolo</p>
+
+    <h4>4. Definizione Veicolo Usato</h4>
+    <pre><code>used(V) :- visit(X,V).</code></pre>
+    <p><strong>Significato:</strong> Un veicolo è usato se visita almeno un nodo</p>
+
+    <h4>5. Vincoli di Percorso</h4>
+    <pre><code>% Partenza dal nodo start
+1 { go(S,Y,V) : dist(S,Y,_), visit(Y,V), start(S), S != Y } 1:- used(V).
+
+% Ritorno al nodo start
+1 { go(X,S,V) : dist(X,S,_), visit(X,V), start(S), X != S } 1:- used(V).
+
+% Un arco in uscita per nodo visitato
+1 { go(X,Y,V) : dist(X,Y,_), visit(Y,V), X != Y } 1:- visit(X,V).
+
+% Un arco in entrata per nodo visitato
+1 { go(X,Y,V) : dist(X,Y,_), visit(X,V), X != Y } 1:- visit(Y,V).</code></pre>
+    <p><strong>Significato:</strong> Garantisce percorsi hamiltoniani per ogni veicolo usato</p>
+
+    <h4>6. Raggiungibilità</h4>
+    <pre><code>reach(Y,V) :- go(S,Y,V), start(S).
+reach(Y,V) :- go(X,Y,V), reach(X,V).
+:- visit(X,V), not reach(X,V).</code></pre>
+    <p><strong>Significato:</strong> Ogni nodo visitato deve essere raggiungibile dal nodo start</p>
+
+
+    <h4>8. Ottimizzazione</h4>
+    <pre><code>#minimize { D*C,X,Y,V : go(X,Y,V), dist(X,Y,D), cost(V,C) }.</code></pre>
+    <p><strong>Significato:</strong> Minimizza il costo totale (distanza × costo per unità per veicolo)</p>
+
+    <h2>Struttura Dati di Input</h2>
+
+    <h3>Dati Base</h3>
+    <table>
+        <tr><th>Predicato</th><th>Significato</th><th>Esempio</th></tr>
+        <tr><td>start(X)</td><td>Nodo di partenza</td><td>start(a)</td></tr>
+        <tr><td>togo(X)</td><td>Nodo da visitare</td><td>togo(b), togo(c)</td></tr>
+        <tr><td>dist(X,Y,D)</td><td>Distanza tra nodi</td><td>dist(a,b,10)</td></tr>
+    </table>
+
+    <h3>Dati Multi-Veicolo</h3>
+    <table>
+        <tr><th>Predicato</th><th>Significato</th><th>Esempio</th></tr>
+        <tr><td>vehicle(V)</td><td>Veicolo disponibile</td><td>vehicle(v1)</td></tr>
+        <tr><td>cost(V,C)</td><td>Costo per unità di distanza</td><td>cost(v1,5)</td></tr>
+        <tr><td>nec(X,V)</td><td>Nodo X richiede veicolo V</td><td>nec(b,v1)</td></tr>
+    </table>
+
+    <h2>Esempi di Test</h2>
+
+    <h3>Test Case data1-data1add</h3>
+    <div class="success">
+        <strong>Soluzione Ottima: Costo 920</strong>
+        <p>Due configurazioni equivalenti:</p>
+        <ul>
+            <li>v1: a→b→a (veicolo richiesto per b)</li>
+            <li>v2: a→d→c→e→a</li>
+        </ul>
+        <p>Oppure:</p>
+        <ul>
+            <li>v2: a→b→a</li>
+            <li>v1: a→d→c→e→a</li>
+        </ul>
+    </div>
+
+    <h3>Test Case data2-data2add</h3>
+    <div class="success">
+        <strong>Soluzione Ottima: Costo 1535</strong>
+        <p>La soluzione utilizza più veicoli per ottimizzare il costo totale considerando i diversi costi per unità di distanza.</p>
+    </div>
+
+    <h2>Esecuzione</h2>
+
+    <h3>Validazione Dati</h3>
+    <pre><code>clingo check.lp data1.lp</code></pre>
+    <p>Verifica che i dati rispettino i vincoli necessari</p>
+
+    <h3>Risoluzione TSP Multi-Veicolo</h3>
+    <pre><code>clingo tspmv.lp data1.lp data1add.lp</code></pre>
+
+    <h3>Output Interpretazione</h3>
+    <div class="highlight">
+        <strong>Output:</strong>
+        <ul>
+            <li><code>go(X,Y,V)</code>: Il veicolo V va dal nodo X al nodo Y</li>
+        </ul>
+		In output i percorsi dei veicoli scelti.
+    </div>
+
+    <h3>Test: 3 nodi, satisfiable</h3>
+    <div class="success">
+        <strong>Dati:</strong>
+        <pre><code>togo(a;b;c;k).
+
+start(a).
+
+dist(a,b,15).dist(a,c,25).dist(a,k,5).
+dist(b,c,20).dist(b,k,100).
+dist(c,k,100).
+
+vehicle(v1;v2).
+cost(v1,10).cost(v2,15).</code></pre>
+<strong>Output:</strong>
+<pre><code>go(b,a,v1) go(a,c,v1) go(c,b,v1)
+go(a,k,v2) go(k,a,v2)
+Optimization: 750</code></pre>
+        Il veicolo con costo maggiore(v2) fa meno strada.
+    </div>
+	
+	<h3>Test: 3 nodi, satisfiable</h3>
+    <div class="success">
+        <strong>Dati:</strong>
+        <pre><code>togo(a;b;c;k).
+
+start(a).
+
+dist(a,b,15).dist(a,c,25).dist(a,k,5).
+dist(b,c,20).dist(b,k,100).
+dist(c,k,100).
+
+vehicle(v1;v2).
+cost(v1,10).cost(v2,15).
+nec(k,v1)</code></pre>
+<strong>Output:</strong>
+<pre><code> go(a,k,v1) go(k,a,v1) 
+go(a,b,v2) go(b,c,v2) go(c,a,v2)
+Optimization: 1000</code></pre>
+        Stesso grafo dell'esempio precedente, ma il nodo k richiede il veicolo v1.
+		I ruoli così si invertono rispetto all'esempio precedente.
+    </div>
+	
+	<div class="error">
+        <strong>Dati:</strong>
+        <pre><code>togo(a;b).
+start(a).
+vehicle(v1;v2).
+cost(v1,10).cost(v2,15).</code></pre>
+<strong>Output:</strong>
+<pre><code> UNSATISFIABLE</code></pre>
+        Non c'è arco tra a e b.
+    </div>
+
+
+    <h2>Esecuzione</h2>
+    <pre><code>clingo dataN.lp dataNadd.lp tspmv.lp</code></pre>
+	oppure, se i dati in un unico file
+	<pre><code>clingo dataN.lp tspmv.lp</code></pre>
+
+</body>
+</html>
