@@ -46,9 +46,7 @@ assegnazione(P, A) :- in_auto(P, A).
 
 guidatore_auto(P, A) :- in_auto(P, A), guida(P).
 
-preferenza_non_soddisfatta(P1, P2) :- violazione_preferenza(P1, P2).
-
 #show assegnazione/2.
 #show guidatore_auto/2.
-#show preferenza_non_soddisfatta/2.
+#show violazione_preferenza/2.
 #show auto_scelta/1.
