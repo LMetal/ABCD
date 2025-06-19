@@ -7,19 +7,27 @@
 % MonthlyPayment: rata mensile calcolata
 % FinalBalance: saldo finale (0 per fine)
 mortgage(Principal, Rate, Term, MonthlyPayment, FinalBalance) :-
-    { Rate >= 0,
-      Term > 0,
-      Principal > 0,
-      FinalBalance = 0 },
-    (   { Rate =:= 0 } ->
-        % Caso senza interessi
-        { MonthlyPayment = Principal / Term }
-    ;   % Per mantenere la linearità in CLP(R), usiamo un'approssimazione
-        % che funziona bene per tassi bassi e durate ragionevoli
-        % Approssimazione: MonthlyPayment ˜ Principal/Term * (1 + Rate*Term/2)
-        { MonthlyPayment = Principal / Term * (1 + Rate * Term / 2) }
+    %vincoli, prestito positivo, rata positiva, almeno un mese...
+    Principal $>= 0,
+    Rate $>= 0,
+    Term $>= 1,
+    MonthlyPayment $>= 0,
+    FinalBalance $>= 0,
+    
+    %Rate = 0 -> niente interessi
+    (Rate =:= 0 ->
+        MonthlyPayment $= Principal / Term,
+        FinalBalance $= 0
+    ;
+        %formula per prestiti
+        OnePlusRate $= 1 + Rate,
+        OnePlusRatePowTerm $= OnePlusRate ^ Term,
+        MonthlyPayment $= Principal * Rate * OnePlusRatePowTerm / (OnePlusRatePowTerm - 1),
+        
+        %saldo finale = 0, prestito ripagato
+        FinalBalance $= 0
     ).
-
+	
 % incomev -> prima fase
 incomev(TotalRepayment, LoanTerm, MonthlyIncome, MonthlyDebt) :-
     { TotalIncome = LoanTerm * MonthlyIncome,
