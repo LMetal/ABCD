@@ -86,6 +86,13 @@
   Durata > 26.666666666666668
 }</code></pre>
 
+    <p><strong>Trova combinazione Income Dept:</strong></p>
+    <pre><code>?-incomev(36000, 24, Income, Dept).
+% Linear constraints:
+{
+  Income - Dept > 1500.0
+}</code></pre>
+
     <h3>Predicato incomeval (con interessi)</h3>
 
     <p><strong>Verifica approvazione (tasso 0.5% mensile):</strong></p>
@@ -100,14 +107,12 @@
   Capitale > 0.0
 }</code></pre>
 
-
-    <div class="highlight">
-        <p><strong>Confronto senza/con interessi:</strong></p>
-        <ul>
-            <li>Senza interessi: prestito massimo 36000€ per 24 mesi</li>
-            <li>Con interessi 0.5%: prestito massimo ~34500€ per 24 mesi</li>
-        </ul>
-    </div>
+    <p><strong>Trova debito preesistente massimo:</strong></p>
+    <pre><code>?- incomeval(30000, 0.005, 24, 2000, Debt).
+% Linear constraints:
+{
+  Debt < 670.38169241725609
+}</code></pre>
 
 </body>
 </html>

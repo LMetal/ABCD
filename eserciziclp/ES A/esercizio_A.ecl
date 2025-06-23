@@ -20,9 +20,8 @@ mortgage(Principal, Rate, Term, MonthlyPayment, FinalBalance) :-
         FinalBalance $= 0
     ;
         %formula per prestiti
-        OnePlusRate $= 1 + Rate,
-        OnePlusRatePowTerm $= OnePlusRate ^ Term,
-        MonthlyPayment $= Principal * Rate * OnePlusRatePowTerm / (OnePlusRatePowTerm - 1),
+        PowTerm $= (1 + Rate) ^ Term,
+        MonthlyPayment $= Principal * Rate * PowTerm / (PowTerm - 1),
         
         %saldo finale = 0, prestito ripagato
         FinalBalance $= 0
