@@ -124,7 +124,8 @@ autotot(N) :- N=n/4+1, n\4>0.</code></pre>
     <p><strong>Significato:</strong> Due persone incompatibili non possono stare nella stessa auto</p>
 
     <h3>8. Ottimizzazione Preferenze</h3>
-    <pre><code>violazione_preferenza(P1, P2) :- v(P1, P2), not same_auto(P1, P2).
+    <pre><code>same_auto(P1, P2) :- in_auto(P1, A), in_auto(P2, A), P1 != P2.
+violazione_preferenza(P1, P2) :- v(P1, P2), not same_auto(P1, P2).
 #minimize{1@1, P1, P2 : violazione_preferenza(P1, P2)}.</code></pre>
     <p><strong>Significato:</strong> Minimizza il numero di preferenze non soddisfatte</p>
 
@@ -157,9 +158,10 @@ v(6,1).</code></pre>
         <pre><code>violazione_preferenza(6,1)
 auto_scelta(2) auto_scelta(6)
 guidatore_auto(3,6) guidatore_auto(1,2) guidatore_auto(2,2) guidatore_auto(6,6)
-assegnazione(1,2) assegnazione(2,2) assegnazione(3,6) assegnazione(4,2) assegnazione(5,6) assegnazione(6,6)
+assegnazione(1,2) assegnazione(2,2) assegnazione(4,2)
+assegnazione(3,6) assegnazione(5,6) assegnazione(6,6)
 </code></pre>
-        <strong>Risultato:</strong> Tutti insieme nell'auto 2, nessuna violazione
+        <strong>Risultato:</strong> In 2 auto differenti, violazione preferenziale.
     </div>
 
     <h3>Test 3: Caso con unsatisfiable(6 persone)</h3>
