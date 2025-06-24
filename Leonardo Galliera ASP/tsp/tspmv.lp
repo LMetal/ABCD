@@ -1,3 +1,6 @@
+%Leonardo Galliera 20045207
+
+
 %distanza simmetrica
 dist(X,Y,D) :- dist(Y,X,D).
 

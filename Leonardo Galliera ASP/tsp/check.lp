@@ -1,3 +1,5 @@
+%Leonardo Galliera 20045207
+
 %distanze simmetriche
 dist(X,Y,N) :- dist(Y,X,N).
 

@@ -1,3 +1,5 @@
+%Leonardo Galliera 20045207
+
 :-lib(clpr).
 
 %predicato mortage -> calcolo rata mensile

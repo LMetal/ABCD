@@ -1,3 +1,4 @@
+%Leonardo Galliera 20045207
 
 % numero auto necessarie (anche ((n-1)/4)+1 )
 

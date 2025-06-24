@@ -1,3 +1,5 @@
+%Leonardo Galliera 20045207
+
 :- lib(clpr).
 
 %ritorna la somma degli elementi nella lista
