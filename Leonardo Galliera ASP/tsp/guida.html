@@ -77,7 +77,7 @@
     </style>
 </head>
 <body>
-    <h1>TSP Multi-Veicolo con Answer Set Programming</h1>
+    <h1>TSP Multi-Veicolo</h1>
 
     <p>Il sistema risolve una versione estesa del Problema del Commesso Viaggiatore (TSP) che utilizza più veicoli con costi diversi per visitare tutti i nodi richiesti, minimizzando il costo totale del viaggio.</p>
 
@@ -108,7 +108,12 @@
     dist(X,Y,DXY), dist(X,Z,DXZ), dist(Z,Y,DZY),
     DXY > DXZ + DZY.</code></pre>
     <p><strong>Significato:</strong> Rileva violazioni della disuguaglianza triangolare d(X,Y) ≤ d(X,Z) + d(Z,Y)</p>
-
+    
+	<h2>Esecuzione</h2>
+    <pre><code>clingo dataN.lp dataNadd.lp check.lp</code></pre>
+	oppure, se i dati in un unico file
+	<pre><code>clingo dataN.lp check.lp</code></pre>
+	
     <h3>File tspmv.lp - Soluzione Multi-Veicolo</h3>
 
     <h4>1. Simmetria delle Distanze</h4>
